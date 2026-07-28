@@ -337,6 +337,11 @@ begin
   HideMouse;
   FastWriteClip(CursorMarkL, Y, Wce, CursorAttr);
   FastWriteClip(CursorMarkR, Y, Wce + 20, CursorAttr);
+  { код сопоставления слов (см. вызовы X1/X2 := WhereY в MainTest) узнаёт,
+    какая строка сейчас выбрана, именно через реальную позицию курсора -
+    поэтому её обязательно нужно оставить здесь, а не только нарисовать
+    маркеры через FastWriteClip (который координаты Crt не обновляет). }
+  GoToXY(Wce, Y);
   ShowMouse;
 end;
 
@@ -351,6 +356,7 @@ begin
   HideMouse;
   FastWriteClip(' ', Y, Cce, TestTextAttr);
   FastWriteClip(' ', Y, Cce + 20, TestTextAttr);
+  GoToXY(Cce, Y);
   ShowMouse;
 end;
 
@@ -365,6 +371,7 @@ begin
   HideMouse;
   FastWriteClip(CursorMarkL, Y, Wcr, CursorAttr);
   FastWriteClip(CursorMarkR, Y, Wcr + 20, CursorAttr);
+  GoToXY(Wcr, Y);
   ShowMouse;
 end;
 procedure ClearCursorR(Y : byte;Levelv:integer);
@@ -378,6 +385,7 @@ begin
   HideMouse;
   FastWriteClip(' ', Y, Ccr, TestTextAttr);
   FastWriteClip(' ', Y, Ccr + 20, TestTextAttr);
+  GoToXY(Ccr, Y);
   ShowMouse;
 end;
 
@@ -457,6 +465,7 @@ if W = ' ' then
 	      begin
 		FastWriteClip('                    ',lY,lX,63);
 		ShowMouse;
+		GoToXY(rX,rY);
 		Exit;
 	      end;
 FastWriteClip(EWind,lY,SetMidle(lX+4,EWind),63);
@@ -492,6 +501,7 @@ FastWriteClip('                   ',lY,lX,63);
  if W = ' ' then begin
 	      FastWriteClip('                   ',lY,lX,63);
 	      ShowMouse;
+	      GoToXY(sX,sY);
 	      Exit;
 	    end;
 FastWriteClip(SD,lY,SetMidle(LX+4,SD),63);
@@ -1087,10 +1097,9 @@ end;
  begin
   Show;
   LeftWindow(' ');
-  TextBackGround(3);
   HideMouse;
-  GoToXY(DelWordE,X1);Write('                   ');
-  GoToXY(DelWordR,X2);Write('                   ');
+  FastWriteClip('                   ', X1, DelWordE, TestTextAttr);
+  FastWriteClip('                   ', X2, DelWordR, TestTextAttr);
   ShowMouse;
   IndexE[X1] := 0;IndexR[X2] := 0;
  end;
