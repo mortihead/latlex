@@ -80,6 +80,10 @@ procedure RawGotoXY(X, Y: Integer);
 procedure PutGlyph(X, Y: Integer; const Glyph: String; Attr: Byte);
 function GetGlyph(X, Y: Integer): TCell;
 
+{ Записать целую (уже обрезанную по ширине) строку одного цвета одним
+  системным вызовом вместо одного на каждый символ. }
+procedure PutRun(X, Y: Integer; const Text: String; Attr: Byte);
+
 procedure MakeWindow(var W: WindowPtr; X1, Y1, X2, Y2: Integer;
   HasFrame, HasShadow, Reserved: Boolean;
   WinAttr, FrameAttr, HeaderAttr: Byte;
@@ -218,6 +222,33 @@ begin
     вызов - и быстрее, и меньше риск, что что-то пойдёт не так под
     нагрузкой в реальном терминале. }
   RawWrite(GotoXYStr(X, Y) + AttrToSGR(Attr) + Glyph);
+end;
+
+{ То же самое, что PutGlyph, но для целой строки визуальных символов
+  одного цвета сразу - одна позиция, один цвет, один системный вызов на
+  ВСЮ строку, а не на каждый её символ. Text должен уже помещаться в
+  экран/окно (обрезку по ширине делает вызывающий код), X,Y - позиция
+  первого символа. }
+procedure PutRun(X, Y: Integer; const Text: String; Attr: Byte);
+var
+  Pos, GLen, Col: Integer;
+begin
+  if (Y < 1) or (Y > ScreenH) then Exit;
+  Pos := 1;
+  Col := 0;
+  while Pos <= Length(Text) do
+  begin
+    GLen := GlyphLen(Text, Pos);
+    if GLen = 0 then Break;
+    if (X + Col >= 1) and (X + Col <= ScreenW) then
+    begin
+      Shadow[Y, X + Col].Glyph := Copy(Text, Pos, GLen);
+      Shadow[Y, X + Col].Attr := Attr;
+    end;
+    Inc(Pos, GLen);
+    Inc(Col);
+  end;
+  RawWrite(GotoXYStr(X, Y) + AttrToSGR(Attr) + Text);
 end;
 
 function GetGlyph(X, Y: Integer): TCell;

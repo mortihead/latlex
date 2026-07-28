@@ -78,21 +78,29 @@ end;
 
 procedure FastWriteClip(const S: String; Y, X: Integer; Attr: Byte);
 var
-  AvailCols, AbsY, Col, Pos, GLen: Integer;
+  AvailCols, AbsX, AbsY, Col, Pos, GLen, CutBytes: Integer;
 begin
   AvailCols := WindMaxX - WindMinX + 1 - (X - 1);
   if AvailCols < 0 then AvailCols := 0;
+  AbsX := WindMinX + X - 1;
   AbsY := WindMinY + Y - 1;
+  { находим, сколько БАЙТ строки S умещается в AvailCols видимых колонок,
+    не разрезая ни один многобайтовый символ - и пишем весь остаток
+    ОДНИМ системным вызовом вместо одного на каждый символ (важно для
+    насыщенных текстом экранов вроде Help, где иначе выходят сотни
+    вызовов write() подряд на одну страницу). }
   Pos := 1;
   Col := 0;
   while (Pos <= Length(S)) and (Col < AvailCols) do
   begin
     GLen := TpWindow.GlyphLen(S, Pos);
     if GLen = 0 then Break;
-    TpWindow.PutGlyph(WindMinX + X - 1 + Col, AbsY, Copy(S, Pos, GLen), Attr);
     Inc(Pos, GLen);
     Inc(Col);
   end;
+  CutBytes := Pos - 1;
+  if CutBytes > 0 then
+    TpWindow.PutRun(AbsX, AbsY, Copy(S, 1, CutBytes), Attr);
   GotoXY(X + Col, Y);
 end;
 
