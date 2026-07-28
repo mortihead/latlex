@@ -34,6 +34,11 @@ unit DataLex;
      ScreenFr    : FrameArray = '######';
      WindowFr    : FrameArray = '#### #';
      NoneFr    : FrameArray   = '      ';
+     { маркеры курсора вокруг выбранного слова в тесте: в оригинале это
+       были байты ^P/^Q (в CP866/CP437 - треугольники "►"/"◄"), но как
+       управляющие символы они невидимы в современном UTF-8 терминале }
+     CursorMarkL = '▶';
+     CursorMarkR = '◀';
      MColor    : MenuColorArray = (112, 112, 112, 47, 116, 119, 116, $07);
      HelpCol   : HelpColorArray = (63,  48, 63, 30, 62,63,51,112);
      HelpMonoC : HelpColorArray = ($0F,$07,$70,$70,15,$0F,0,$0F);
@@ -329,15 +334,10 @@ begin
     2 : Wce := 21;
     3 : Wce := 23
   end;
-  HighVideo;
   HideMouse;
-  TextAttr := CursorAttr;
-  GoToXY(Wce,Y);Write(^P);
-  ChangeAttribute(19,Y,Wce+1,63);
-  GoToXY(WhereX + 19,Y);Write(^Q);
-  GoToXY(WhereX,Y);
+  FastWriteClip(CursorMarkL, Y, Wce, CursorAttr);
+  FastWriteClip(CursorMarkR, Y, Wce + 20, CursorAttr);
   ShowMouse;
-  LowVideo;
 end;
 
 procedure ClearCursorE(Y : byte;Levelx:integer);
@@ -349,11 +349,8 @@ begin
     3 : Cce := 23
   end;
   HideMouse;
-  TextColor(14);TextBackGround(3);
-  GoToXY(Cce,Y);Write(' ');
-  ChangeAttribute(19,Y,Cce+1,TestTextAttr);
-  GoToXY(WhereX + 19,Y);Write(' ');
-  LowVideo;
+  FastWriteClip(' ', Y, Cce, TestTextAttr);
+  FastWriteClip(' ', Y, Cce + 20, TestTextAttr);
   ShowMouse;
 end;
 
@@ -365,14 +362,9 @@ begin
     2 : WcR := 43;
     3 : WcR := 45
   end;
-  HighVideo;
   HideMouse;
-    TextAttr := CursorAttr;
-    GoToXY(Wcr,Y);Write(^P);
-    ChangeAttribute(19,Y,Wcr+1,63);
-    GoToXY(WhereX + 19,Y);Write(^Q);
-    GoToXY(WhereX,Y);
-  LowVideo;
+  FastWriteClip(CursorMarkL, Y, Wcr, CursorAttr);
+  FastWriteClip(CursorMarkR, Y, Wcr + 20, CursorAttr);
   ShowMouse;
 end;
 procedure ClearCursorR(Y : byte;Levelv:integer);
@@ -384,11 +376,8 @@ begin
     3 : CcR := 45
   end;
   HideMouse;
-  TextColor(14);TextBackGround(3);
-    GoToXY(Ccr, Y);Write(' ');
-    ChangeAttribute(19,Y,Ccr+1,TestTextAttr);
-    GoToXY(WhereX + 19,Y);Write(' ');
-  LowVideo;
+  FastWriteClip(' ', Y, Ccr, TestTextAttr);
+  FastWriteClip(' ', Y, Ccr + 20, TestTextAttr);
   ShowMouse;
 end;
 
