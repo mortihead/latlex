@@ -265,10 +265,17 @@ end;
 procedure FillAbs(X1, Y1, X2, Y2: Integer; const Ch: String; Attr: Byte);
 var
   X, Y: Integer;
+  Line: String;
 begin
+  { заливка окна (особенно крупного, вроде Help) поглиф-за-глифом давала
+    по одному системному вызову на каждую из сотен ячеек - собираем
+    сразу целую строку заливки и пишем её через PutRun одним вызовом
+    на строку. }
+  Line := '';
+  for X := X1 to X2 do
+    Line := Line + Ch;
   for Y := Y1 to Y2 do
-    for X := X1 to X2 do
-      PutGlyph(X, Y, Ch, Attr);
+    PutRun(X1, Y, Line, Attr);
 end;
 
 procedure SetActiveWindow(W: WindowPtr);
@@ -288,6 +295,7 @@ procedure MakeWindow(var W: WindowPtr; X1, Y1, X2, Y2: Integer;
 var
   SX1, SY1, SX2, SY2: Integer;
   X, Y, i, HeaderX, Col, GLen: Integer;
+  HLine: String;
 begin
   New(W);
   W^.X1 := X1; W^.Y1 := Y1; W^.X2 := X2; W^.Y2 := Y2;
@@ -336,10 +344,13 @@ begin
     PutGlyph(X2, Y1, FrameChars[3], FrameAttr);
     PutGlyph(X1, Y2, FrameChars[2], FrameAttr);
     PutGlyph(X2, Y2, FrameChars[4], FrameAttr);
-    for X := X1 + 1 to X2 - 1 do
+    if X2 - X1 > 1 then
     begin
-      PutGlyph(X, Y1, FrameChars[5], FrameAttr);
-      PutGlyph(X, Y2, FrameChars[5], FrameAttr);
+      HLine := '';
+      for X := X1 + 1 to X2 - 1 do
+        HLine := HLine + FrameChars[5];
+      PutRun(X1 + 1, Y1, HLine, FrameAttr);
+      PutRun(X1 + 1, Y2, HLine, FrameAttr);
     end;
     for Y := Y1 + 1 to Y2 - 1 do
     begin
