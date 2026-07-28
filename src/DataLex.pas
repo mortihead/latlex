@@ -62,7 +62,6 @@ unit DataLex;
   var i,j : integer;
       W : array[0..MaxWindow] of WindowPtr;
       M : array[0..MaxWindow] of WindowPtr;
-      HelpColors : HelpColorArray;
       DownE, UpE, DownR, UpR,
       Enter, Esc, Tab : boolean;
       KeyW : Word;
