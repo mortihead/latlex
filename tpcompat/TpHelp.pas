@@ -178,7 +178,10 @@ begin
   while i <= Topics[Ti].LineCount do
   begin
     Line := Topics[Ti].Lines[i];
-    if Line = '!PAGE' then
+    { в исходном LATLEX.TXT 1994 года сама разметка написана не всегда
+      единообразно - например, одна из директив !LINE записана как
+      !Line - поэтому сравниваем без учёта регистра. }
+    if UpCase(Line) = '!PAGE' then
     begin
       FastWriteClip(' -- Enter/Esc: close, any key: next -- ',
         WinY2 - WinY1 - 1, 1, TextAttrC);
@@ -188,7 +191,7 @@ begin
       ClrScr;
       Row := 1;
     end
-    else if Line = '!LINE' then
+    else if UpCase(Line) = '!LINE' then
     begin
       FastWriteClip(StringOfChar('-', WinX2 - WinX1 - 3), Row, 1, TextAttrC);
       Inc(Row);
