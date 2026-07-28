@@ -175,13 +175,18 @@ end;
   окон и текста было надёжным независимо от того, что перед этим писалось
   на экран, позиционируем курсор напрямую абсолютной ANSI CUP
   последовательностью, в обход Crt.GotoXY и Crt.Write целиком. }
-procedure RawGotoXY(X, Y: Integer);
+function GotoXYStr(X, Y: Integer): String;
 var
   xs, ys: String;
 begin
   Str(Y, ys);
   Str(X, xs);
-  RawWrite(#27'[' + ys + ';' + xs + 'H');
+  GotoXYStr := #27'[' + ys + ';' + xs + 'H';
+end;
+
+procedure RawGotoXY(X, Y: Integer);
+begin
+  RawWrite(GotoXYStr(X, Y));
 end;
 
 function AttrToSGR(Attr: Byte): String;
@@ -207,9 +212,12 @@ begin
   if (X < 1) or (X > ScreenW) or (Y < 1) or (Y > ScreenH) then Exit;
   Shadow[Y, X].Glyph := Glyph;
   Shadow[Y, X].Attr := Attr;
-  RawGotoXY(X, Y);
-  RawWrite(AttrToSGR(Attr));
-  RawWrite(Glyph);
+  { Раньше это были три отдельных системных вызова (позиция, цвет, символ)
+    на каждый выведенный символ - для насыщенного текстом экрана (Help)
+    это сотни лишних write() подряд. Объединяем в одну строку и один
+    вызов - и быстрее, и меньше риск, что что-то пойдёт не так под
+    нагрузкой в реальном терминале. }
+  RawWrite(GotoXYStr(X, Y) + AttrToSGR(Attr) + Glyph);
 end;
 
 function GetGlyph(X, Y: Integer): TCell;
