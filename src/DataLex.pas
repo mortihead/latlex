@@ -268,11 +268,11 @@ procedure Time;
   begin
   HideMouse;
    eX := WhereX; eY := WhereY;
-       { окно стало на 4 строки выше (10 -> 14), чтобы кнопки Yes/No со
-         своей рамкой помещались целиком внутри диалога, не наезжая на
-         его собственную нижнюю рамку - включая и тень самой кнопочной
-         рамки (ещё +1 строка вниз), и с пустой строкой-отступом после
-         вопроса. SubMenu(29,10,...) - координаты кнопочного окна
+       { окно стало на 4 строки выше (10 -> 14): пункты Yes/No всегда
+         занимают 3 строки (пустая-пункт-пустая, даже без видимой рамки)
+         плюс ещё 1 строка - их собственная тень, и всё это не должно
+         наезжать на нижнюю рамку диалога. Плюс пустая строка-отступ
+         после вопроса. SubMenu(29,10,...) - координаты кнопочного окна
          абсолютные (не относительно диалога), 29 центрирует его по
          ширине, 10 - первая свободная внутренняя строка после отступа. }
        MakeWindow(W[1],18,7,61,14,True,True,True, 127, 127, 127,
@@ -281,7 +281,7 @@ procedure Time;
        {$R-}
 	 FastWriteClip(L[36],1,Midle(43,L[36]),112);
 	 QMenu := NewMenu([],nil);
-	 SubMenu(29,10,22,Horizontal,ActiveFrame,MColor,'');
+	 SubMenu(29,10,22,Horizontal,NoneFr,MColor,'');
 	 MenuWidth(2);
 	    MenuMode(False,False,False);
 	    MenuItem('  Yes  ',6,3,1,L[37]);
@@ -866,8 +866,7 @@ function SortWords : byte;
     HideMouse;
      sX := WhereX; sY := WhereY;
        { см. комментарий у ExitFromTest - окно выше (11 -> 15: +1 строка
-         отступа, +3 строки кнопочной рамки, +1 строка её тени), кнопки
-         получили свою рамку и отдельную строку-отступ после текста. }
+         отступа после текста, +3 строки под Yes/No, +1 строка их тени). }
        MakeWindow(W[1],15,7,65,15,True,True,True, 127, 127, 127,
 			  ' the Lation Lexicon ');
        if not DisplayWindow(W[1]) then ShowError(2);
@@ -875,7 +874,7 @@ function SortWords : byte;
 	 FastWriteClip(L[84],1,Midle(50,L[84]),112);
 	 FastWriteClip(L[85],2,Midle(50,L[85]),112);
 	 SMenu := NewMenu([],nil);
-	 SubMenu(29,11,22,Horizontal,ActiveFrame,MColor,'');
+	 SubMenu(29,11,22,Horizontal,NoneFr,MColor,'');
 	 MenuWidth(2);
 	    MenuMode(False,False,False);
 	    MenuItem('  Yes  ',6,3,1,L[37]);
