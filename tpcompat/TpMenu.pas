@@ -52,6 +52,7 @@ type
     Parent: PMenuNode;
     ParentItemIdx: Integer;
     CurIdx: Integer;
+    UseCursorMarks: Boolean;
   end;
 
   PMenuHandle = ^TMenuHandleRec;
@@ -73,6 +74,10 @@ procedure MenuItem(const ACaption: String; APos, AHotPos, AId: Integer; const AH
 procedure MenuMode(A, B, C: Boolean);
 procedure MenuWidth(W: Integer);
 procedure MenuHeight(H: Integer);
+{ Показывать текущий выделенный пункт не только цветом, но и маркерами
+  ▶ ◀ по краям подписи (как в тесте на совпадение слов) - для пунктов с
+  симметричными пробелами по краям вроде '  Yes  '. }
+procedure MenuCursorMarks(Enable: Boolean);
 procedure PopSubLevel;
 procedure ResetMenu(M: Menu);
 procedure SetMenuDelay(M: Menu; Delay: Integer);
@@ -120,6 +125,7 @@ begin
   N^.Parent := nil;
   N^.ParentItemIdx := 0;
   N^.CurIdx := 1;
+  N^.UseCursorMarks := False;
   if BuildTop = 0 then
   begin
     if PendingHandle <> nil then
@@ -166,6 +172,11 @@ end;
 
 procedure MenuHeight(H: Integer);
 begin
+end;
+
+procedure MenuCursorMarks(Enable: Boolean);
+begin
+  BuildStack[BuildTop]^.UseCursorMarks := Enable;
 end;
 
 procedure PopSubLevel;
@@ -259,13 +270,38 @@ begin
     AttrFor := N^.Colors[3];
 end;
 
+const
+  CursorMarkL = '▶';
+  CursorMarkR = '◀';
+
+{ Заменяет крайние символы подписи (в расчёте на обрамляющие пробелы,
+  как в '  Yes  ') на маркеры курсора для выделенного пункта - ширина
+  в глифах не меняется (маркер занимает ровно 1 колонку), поэтому
+  раскладка (Pos/NodeWidth, которые считаются по исходной Caption) не
+  сбивается. Для невыделенного пункта подпись не трогаем. }
+function MarkedCaption(const Caption: String; Selected: Boolean): String;
+begin
+  if Selected and (Length(Caption) >= 2) then
+    MarkedCaption := CursorMarkL + Copy(Caption, 2, Length(Caption) - 2) + CursorMarkR
+  else
+    MarkedCaption := Caption;
+end;
+
 procedure DrawItem(N: PMenuNode; Idx: Integer);
+var
+  DrawCaption: String;
 begin
   with N^.Items[Idx] do
-    if N^.Orient = Vertical then
-      FastWriteClip(Caption, Pos, 2, AttrFor(N, Idx))
+  begin
+    if N^.UseCursorMarks then
+      DrawCaption := MarkedCaption(Caption, Idx = N^.CurIdx)
     else
-      FastWriteClip(Caption, 1, Pos, AttrFor(N, Idx));
+      DrawCaption := Caption;
+    if N^.Orient = Vertical then
+      FastWriteClip(DrawCaption, Pos, 2, AttrFor(N, Idx))
+    else
+      FastWriteClip(DrawCaption, 1, Pos, AttrFor(N, Idx));
+  end;
 end;
 
 function NodeHeight(N: PMenuNode): Integer;
@@ -289,15 +325,27 @@ end;
   видимо, не имело значения, но в нашей реализации слишком узкое окно
   даёт вырожденную (отрицательной ширины) внутреннюю область и полностью
   ломает координаты всего, что рисуется внутри. Поэтому берём максимум
-  из заданной ширины и реально необходимой по пунктам. }
+  из заданной ширины и реально необходимой по пунктам.
+
+  ItemX/Pos - это колонка ПЕРВОГО символа пункта относительно внутренней
+  области (считая от 1), а рамка добавляет по одной колонке с каждой
+  стороны сверх этой внутренней области - поэтому к последней занятой
+  внутренней колонке (ItemX + VisLen - 1) нужно прибавить ещё 1 (правая
+  рамка), а не 0. Раньше не хватало ровно этой колонки: с обычным
+  пробелом-заполнителем на конце подписи обрезание было незаметно, а с
+  маркером курсора ▶/◀ на конце - обрезался сам маркер. }
 function NodeWidth(N: PMenuNode): Integer;
 var
-  i, W, Need: Integer;
+  i, W, Need, ItemX: Integer;
 begin
   W := N^.Width;
   for i := 1 to N^.ItemCount do
   begin
-    Need := N^.Items[i].Pos + VisLen(N^.Items[i].Caption);
+    if N^.Orient = Horizontal then
+      ItemX := N^.Items[i].Pos
+    else
+      ItemX := 2;
+    Need := ItemX + VisLen(N^.Items[i].Caption) + 1;
     if Need > W then W := Need;
   end;
   NodeWidth := W;
