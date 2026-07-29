@@ -307,10 +307,16 @@ procedure DrawNode(N: PMenuNode);
 var
   Win: WindowPtr;
   i: Integer;
+  HasVisibleFrame: Boolean;
 begin
   FrameChars := N^.Frame;
+  { тень имеет смысл только у окна с видимой рамкой (как в оригинале -
+    "приподнятая" рамка отбрасывает тень); у полностью прозрачного меню
+    (все символы рамки - пробелы, как NoneFr для кнопок Yes/No) тень
+    рисуется как ничем не обоснованное цветное пятно рядом с текстом. }
+  HasVisibleFrame := (N^.Frame[1] <> ' ') or (N^.Frame[6] <> ' ');
   MakeWindow(Win, N^.X, N^.Y, N^.X + NodeWidth(N) - 1, N^.Y + NodeHeight(N) - 1,
-    True, True, True, N^.Colors[3], N^.Colors[1], N^.Colors[7], N^.Title);
+    True, HasVisibleFrame, True, N^.Colors[3], N^.Colors[1], N^.Colors[7], N^.Title);
   DisplayWindow(Win);
   for i := 1 to N^.ItemCount do
     DrawItem(N, i);
