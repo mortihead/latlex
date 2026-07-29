@@ -268,13 +268,20 @@ procedure Time;
   begin
   HideMouse;
    eX := WhereX; eY := WhereY;
-       MakeWindow(W[1],18,7,61,10,True,True,True, 127, 127, 127,
+       { окно стало на 4 строки выше (10 -> 14), чтобы кнопки Yes/No со
+         своей рамкой помещались целиком внутри диалога, не наезжая на
+         его собственную нижнюю рамку - включая и тень самой кнопочной
+         рамки (ещё +1 строка вниз), и с пустой строкой-отступом после
+         вопроса. SubMenu(29,10,...) - координаты кнопочного окна
+         абсолютные (не относительно диалога), 29 центрирует его по
+         ширине, 10 - первая свободная внутренняя строка после отступа. }
+       MakeWindow(W[1],18,7,61,14,True,True,True, 127, 127, 127,
 			  ' the Lation Lexicon ');
        if not DisplayWindow(W[1]) then ShowError(2);
        {$R-}
 	 FastWriteClip(L[36],1,Midle(43,L[36]),112);
 	 QMenu := NewMenu([],nil);
-	 SubMenu(25,9,25,Horizontal,NoneFr,MColor,'');
+	 SubMenu(29,10,22,Horizontal,ActiveFrame,MColor,'');
 	 MenuWidth(2);
 	    MenuMode(False,False,False);
 	    MenuItem('  Yes  ',6,3,1,L[37]);
@@ -858,14 +865,17 @@ function SortWords : byte;
   begin
     HideMouse;
      sX := WhereX; sY := WhereY;
-       MakeWindow(W[1],15,7,65,11,True,True,True, 127, 127, 127,
+       { см. комментарий у ExitFromTest - окно выше (11 -> 15: +1 строка
+         отступа, +3 строки кнопочной рамки, +1 строка её тени), кнопки
+         получили свою рамку и отдельную строку-отступ после текста. }
+       MakeWindow(W[1],15,7,65,15,True,True,True, 127, 127, 127,
 			  ' the Lation Lexicon ');
        if not DisplayWindow(W[1]) then ShowError(2);
        {$R-}
 	 FastWriteClip(L[84],1,Midle(50,L[84]),112);
 	 FastWriteClip(L[85],2,Midle(50,L[85]),112);
 	 SMenu := NewMenu([],nil);
-	 SubMenu(25,10,25,Horizontal,NoneFr,MColor,'');
+	 SubMenu(29,11,22,Horizontal,ActiveFrame,MColor,'');
 	 MenuWidth(2);
 	    MenuMode(False,False,False);
 	    MenuItem('  Yes  ',6,3,1,L[37]);
@@ -933,7 +943,6 @@ function SortWords : byte;
 			  ' the Lation Lexicon ');
        if not DisplayWindow(W[1]) then ShowError(2);
 	RepeatPrint:
-	  HideCursorInReadChar := True;
 	  Window(1,1,80,25);
 	  NewLineH;
 	  NewLine;
@@ -1488,7 +1497,6 @@ begin
 	    {$R-}
        FastWriteClip(L[61] + LatLexFs + L[62],
 		       1, Midle(36, L[61] + LatLexFs + L[62]),78);
-	  HideCursorInReadChar := True;
 	     FastWriteClip(L[73],2,
 		  Midle(36,L[73]),79);
 	     FastWriteClip(L[74],3,
@@ -1526,7 +1534,6 @@ begin
        FastWriteClip(L[105]+LatLexFs+L[106],1,
 	    Midle(36,L[105]+LatLexFs+L[106]),78);
        FastWriteClip(TablFile,2,Midle(36,TablFile),79);
-	  HideCursorInReadChar := True;
        if YesOrNo('Retry (Y/N)',10,35,79,' ') then
 	 begin
 	     ErrWind[1] := EraseTopWindow;

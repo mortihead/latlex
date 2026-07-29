@@ -11,7 +11,6 @@ uses
   Crt, TpWindow, TpCrt, TpMouse, TpHelp;
 
 var
-  HideCursorInReadChar: Boolean;
   EditHelpPtr: HelpHookProc;
 
 function YesOrNo(const Msg: String; Y, X: Integer; Attr: Byte; Dummy: Char): Boolean;
@@ -53,12 +52,18 @@ begin
   end;
   FastWriteClip(Prompt, 1, 2, Attr);
 
-  if HideCursorInReadChar then HiddenCursor;
+  { курсор терминала в этом приложении всегда должен оставаться скрытым
+    (см. HiddenCursor при старте в LatLex.pas) - весь UI сам рисует
+    подсветку нужным атрибутом. Раньше здесь он временно включался
+    обратно (NormalCursor) и после этого уже никто его больше не прятал,
+    поэтому родной блочный курсор терминала до конца программы оставался
+    висеть там, где его в последний раз оставил GotoXY - например, поверх
+    кнопки "No" в диалоге подтверждения выхода. }
+  HiddenCursor;
   repeat
     repeat until KeyPressed;
     c := UpCase(ReadKey);
   until c in ['Y', 'N', #13, #27];
-  if HideCursorInReadChar then NormalCursor;
   if c = #27 then c := 'N';
   if c = #13 then c := 'Y';
   YesOrNo := (c = 'Y');
@@ -69,6 +74,5 @@ begin
 end;
 
 begin
-  HideCursorInReadChar := False;
   EditHelpPtr := nil;
 end.
